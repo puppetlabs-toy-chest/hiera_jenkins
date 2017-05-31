@@ -1,0 +1,15 @@
+{
+  "name": "puppetlabs/hiera_jenkins",
+  "version": "0.1.0",
+  "author": "puppetlabs",
+  "summary": "This module provides the Hiera 5 lookup functions for the Puppet Enterprise for Jenkins Pipeline plugin.",
+  "license": "Apache-2.0",
+  "source": "https://github.com/puppetlabs/puppetlabs-hiera_jenkins",
+  "project_page": "https://github.com/puppetlabs/puppetlabs-hiera_jenkins",
+  "issues_url": "https://github.com/puppetlabs/puppetlabs-hiera_jenkins/issues",
+  "dependencies": [
+    {"name":"crayfishx/hiera-http","version_requirement":">= 3.0.0"}
+  ],
+  "data_provider": null
+}
+
