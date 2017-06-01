@@ -9,10 +9,11 @@ Puppet::Functions.create_function(:hiera_jenkins) do
   end
 
   def lookup_key(key, options, context)
-    options[:output] = 'json' unless options[:output]
-    options[:ignore_404] = true unless options[:ignore_404]
-    options[:auth_user] = options[:jenkins_user] if options[:jenkins_user]
-    options[:auth_pass] = options[:jenkins_user] if options[:jenkins_password]
+    options['port'] = 8080 unless options['port']
+    options['output'] = 'json' unless options['output']
+    options['ignore_404'] = true unless options['ignore_404']
+    options['auth_user'] = options['jenkins_user'] if options['jenkins_user']
+    options['auth_pass'] = options['jenkins_user'] if options['jenkins_password']
 
     if confine_keys = options['confine_to_keys']
       raise ArgumentError, 'confine_to_keys must be an array' unless confine_keys.is_a?(Array)
