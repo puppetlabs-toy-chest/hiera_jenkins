@@ -5,75 +5,97 @@
 1. [Overview](#overview)
 2. [Module Description - What the module does and why it is useful](#module-description)
 3. [Setup - The basics of getting started with hiera_jenkins](#setup)
-    * [What hiera_jenkins affects](#what-hiera_jenkins-affects)
-    * [Setup requirements](#setup-requirements)
-    * [Beginning with hiera_jenkins](#beginning-with-hiera_jenkins)
-4. [Usage - Configuration options and additional functionality](#usage)
-5. [Reference - An under-the-hood peek at what the module is doing and how](#reference)
-5. [Limitations - OS compatibility, etc.](#limitations)
-6. [Development - Guide for contributing to the module](#development)
+    * [Configuration](#setup-configuration)
+4. [Limitations](#limitations)
+5. [Development](#development)
 
 ## Overview
 
-A one-maybe-two sentence summary of what the module does/what problem it solves.
-This is your 30 second elevator pitch for your module. Consider including
-OS/Puppet version it works with.
+This module enables Hiera 5 to lookup key/value pairs managed by the [Puppet Enterprise for Jenkins Pipeline plugin](https://wiki.jenkins-ci.org/display/JENKINS/Puppet+Enterprise+Pipeline+Plugin).
 
 ## Module Description
 
-If applicable, this section should have a brief description of the technology
-the module integrates with and what that integration enables. This section
-should answer the questions: "What does this module *do*?" and "Why would I use
-it?"
-
-If your module has a range of functionality (installation, configuration,
-management, etc.) this is the time to mention it.
+This module provides a Puppet function called `hiera_jenkins` that can be used by Hiera 5 to do key lookups from Jenkins. 
+The [Puppet Enterprise for Jenkins Pipeline plugin](https://wiki.jenkins-ci.org/display/JENKINS/Puppet+Enterprise+Pipeline+Plugin) is used to set key/value pairs in "scopes" from continuous delivery pipelines.
 
 ## Setup
 
-### What hiera_jenkins affects
+### Configuration
 
-* A list of files, packages, services, or operations that the module will alter,
-  impact, or execute on the system it's installed on.
-* This is a great place to stick any warnings.
-* Can be in list or paragraph form.
+ee [The official Puppet documentation](https://docs.puppet.com/puppet/4.9/hiera_intro.html) for more details on configuring Hiera 5.
 
-### Setup Requirements **OPTIONAL**
+The following is an example Hiera 5 hiera.yaml configuration for use with hiera_jenkins
 
-If your module requires anything extra before setting up (pluginsync enabled,
-etc.), mention it here.
+```yaml
+---
 
-### Beginning with hiera_jenkins
+version: 5
 
-The very basic steps needed for a user to get the module up and running.
+hierarchy:
+  - name: "Jenkins lookup"
+    lookup_key: hiera_jenkins
+    uris:
+      - jenkins://lookup/%{trusted.certname}
+      - jenkins://lookup/%{trusted.extensions.pp_environment}
+      - jenkins://lookup/%{trusted.extensions.pp_datacenter}
+    options:
+      host: jenkins.infra.example.com
+      port: 8080
+```
 
-If your most recent release breaks compatibility or requires particular steps
-for upgrading, you may wish to include an additional section here: Upgrading
-(For an example, see http://forge.puppetlabs.com/puppetlabs/firewall).
+The following mandatory Hiera 5 options must be set for each level of the hierarchy.
 
-## Usage
+`name`: A human readable name for the lookup
 
-Put the classes, types, and resources for customizing, configuring, and doing
-the fancy stuff with your module here.
+`lookup_key`: This option must be set to `hiera_jenkins`
 
-## Reference
+`uris` or `uri`: An array of URI's passed to `uris` _or_ a single URI passed to `uri`. URI values must match the pattern `jenkins://lookup/<scope>`
 
-Here, list the classes, types, providers, facts, etc contained in your module.
-This section should include all of the under-the-hood workings of your module so
-people know what the module is touching on their system but don't need to mess
-with things. (We are working on automating this section!)
+`host`: The DNS address of the Jenkins server
+
+
+
+The following are optional configuration parameters supported in the `options` hash of the Hiera 5 config
+
+`port`: The port Jenkins is listening on (default: 8080)
+
+`jenkins_user:`: The user for Jenkins authentication if authentication is required. `jenkins_password` is required if `jenkins_user` is specified.
+
+`jenkins_password:`: The password for the Jenkins authentication user specified by `jenkins_user`
+
+`http_connect_timeout: ` : Timeout in seconds for the HTTP connect (default 10)
+
+`http_read_timeout: ` : Timeout in seconds for waiting for a HTTP response (default 10)
+
+`confine_to_keys: ` : Only use this backend if the key matches one of the regexes in the array
+
+      confine_to_keys:
+        - "application.*"
+        - "apache::.*"
+
+`failure: ` : When set to `graceful` will stop hiera-http from throwing an exception in the event of a connection error, timeout or invalid HTTP response and move on.  Without this option set hiera-http will throw an exception in such circumstances
+
+`use_ssl:`: When set to true, enable SSL (default: false)
+
+`ssl_ca_cert`: Specify a CA cert for use with SSL
+
+`ssl_cert`: Specify location of SSL certificate
+
+`ssl_key`: Specify location of SSL key
+
+`ssl_verify`: Specify whether to verify SSL certificates (default: true)
+
+`headers:`: Hash of headers to send in the request
 
 ## Limitations
 
-This is where you list OS compatibility, version compatibility, etc.
+This module only works with Hiera 5 included in Puppet 4.9+ and Puppet Enterprise 2017.2+
 
 ## Development
+Puppet Labs modules on the Puppet Forge are open projects, and community contributions are essential for keeping them great. We can’t access the huge number of platforms and myriad hardware, software, and deployment configurations that Puppet is intended to serve. We want to keep it as easy as possible to contribute changes so that our modules work in your environment. There are a few guidelines that we need contributors to follow so that we can have a chance of keeping on top of things. For more information, see our module contribution guide.
 
-Since your module is awesome, other users will want to play with it. Let them
-know what the ground rules for contributing are.
+To report or research a bug with any part of this module, please go to http://tickets.puppetlabs.com/browse/MODULES.
 
-## Release Notes/Contributors/Etc **Optional**
+## Contributors/Origin
 
-If you aren't using changelog, put your release notes here (though you should
-consider using changelog). You may also add any additional sections you feel are
-necessary or important to include here. Please use the `## ` header.
+This module is very heavily based on the [crayfishx/hiera-http](https://forge.puppet.com/crayfishx/hiera_http) module.
