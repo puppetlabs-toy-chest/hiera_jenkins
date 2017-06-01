@@ -1,6 +1,6 @@
-# 
 Puppet::Functions.create_function(:hiera_jenkins) do
   require 'uri'
+  require 'lookup_httpx/lookup_http'
 
   dispatch :lookup_key do
     param 'Variant[String, Numeric]', :key
@@ -33,31 +33,38 @@ Puppet::Functions.create_function(:hiera_jenkins) do
   end
 
   def http_get(key, context, options)
-    uri = URI::HTTP.build({ 
-      :host => options[:host], 
-      :port => options[:port],
-      :query => { 'scope' => options[:path], 'key' => key },
-      :path => '/hiera',
+    scope = URI.parse(options['uri']).path.split('/').last
+
+    if scope.nil? or scope.empty?
+      context.explain { "Skipping an empty scope" }
+      context.not_found
+    end
+
+    uri = URI::HTTP.build({
+      :host  => options['host'],
+      :port  => options['port'],
+      :query => URI.escape("scope=#{scope}&key=#{key}"),
+      :path  => '/hiera/lookup'
     })
-    
+
     if options[:use_ssl]
       uri.scheme = 'https'
     end
 
-    if context.cache_has_key(path)
-      context.explain { "Returning cached value for #{path}" }
-      return context.cached_value(path)
+    if context.cache_has_key("#{scope}/#{key}")
+      context.explain { "Returning cached value for #{scope}/#{key}" }
+      return context.cached_value("#{scope}/#{key}")
     else
       context.explain { "Querying #{uri}" }
       lookup_params = {}
       options.each do |k,v|
-        lookup_params[k.to_sym] = v if lookup_supported_params.include?(k.to_sym)
+        lookup_params[k.to_sym] = v if supported_params.include?(k.to_sym)
       end
       http_handler = LookupHttp.new(lookup_params.merge({:host => uri.host, :port => uri.port}))
 
       begin
-        response = http_handler.get_parsed(path)
-        context.cache(path, response)
+        response = http_handler.get_parsed(uri)
+        context.cache("#{scope}/#{key}", response)
         return response
       rescue LookupHttp::LookupError => e
         raise Puppet::DataBinding::LookupError, "lookup_http failed #{e.message}"
@@ -78,7 +85,6 @@ Puppet::Functions.create_function(:hiera_jenkins) do
       :ssl_cert,
       :ssl_key,
       :ssl_verify,
-      :use_auth,
       :auth_user,
       :auth_pass,
     ]
