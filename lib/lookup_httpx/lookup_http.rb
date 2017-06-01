@@ -49,10 +49,10 @@ class LookupHttp
     JSON.parse(answer)
   end
 
-  def get_parsed(path)
-    httpreq = Net::HTTP::Get.new(path)
+  def get_parsed(uri)
+    httpreq = Net::HTTP::Get.new(uri)
 
-    if @config[:use_auth]
+    if (@config[:auth_user] and @config[:auth_pass])
       httpreq.basic_auth @config[:auth_user], @config[:auth_pass]
     end
 
@@ -70,7 +70,7 @@ class LookupHttp
     end
 
     unless httpres.kind_of?(Net::HTTPSuccess)
-      log_debug("[lookup_http]: bad http response from #{@config[:host]}:#{@config[:port]}#{path}")
+      log_debug("[lookup_http]: bad http response from #{uri}")
       log_debug("HTTP response code was #{httpres.code}")
       unless httpres.code == '404' && @config[:ignore_404]
         raise LookupHttp::LookupError, 'Bad HTTP response' unless @config[:failure] == 'graceful'
