@@ -36,7 +36,7 @@ Puppet::Functions.create_function(:hiera_jenkins) do
   def http_get(key, context, options)
     scope = URI.parse(options['uri']).path.split('/').last
 
-    if scope.nil? or scope.empty?
+    if scope.nil?
       context.explain { "Skipping an empty scope" }
       context.not_found
     end
