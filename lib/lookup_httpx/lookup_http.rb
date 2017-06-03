@@ -50,7 +50,7 @@ class LookupHttp
   end
 
   def get_parsed(uri)
-    httpreq = Net::HTTP::Get.new(uri)
+    httpreq = Net::HTTP::Get.new(String(uri))
 
     if (@config[:auth_user] and @config[:auth_pass])
       httpreq.basic_auth @config[:auth_user], @config[:auth_pass]
