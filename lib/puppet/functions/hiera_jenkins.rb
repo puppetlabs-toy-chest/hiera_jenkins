@@ -1,6 +1,6 @@
 Puppet::Functions.create_function(:hiera_jenkins) do
   require 'uri'
-  require File.dirname(__FILE__) + '/../../lookup_httpx/lookup_http'
+  require File.dirname(__FILE__) + '/../../lookup_httpx/lookup_httpx'
 
   dispatch :lookup_key do
     param 'Variant[String, Numeric]', :key
